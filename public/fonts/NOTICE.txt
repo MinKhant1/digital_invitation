@@ -1,0 +1,6 @@
+Cinzel
+Copyright 2012 The Cinzel Project Authors (https://github.com/googlefonts/cinzel)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+cinzel.json is a Three.js typeface derived from Cinzel for dimensional lettering.
+The full license text is published at https://openfontlicense.org

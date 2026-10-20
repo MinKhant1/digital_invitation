@@ -1,0 +1,456 @@
+.app-shell,
+.preview-shell,
+.stage {
+  min-height: 100dvh;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: transparent;
+  z-index: 0;
+}
+
+.stage video {
+  z-index: 0 !important;
+  max-width: none !important;
+}
+
+.stage canvas {
+  z-index: 1 !important;
+  display: block;
+}
+
+.mindar-ui-overlay {
+  display: none !important;
+}
+
+.landing,
+.loading-screen,
+.error-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: calc(24px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 18%, rgba(157, 24, 52, 0.38), transparent 34%),
+    radial-gradient(circle at 80% 80%, rgba(231, 201, 138, 0.16), transparent 28%),
+    #07060b;
+  overflow: auto;
+}
+
+.landing-glow {
+  position: absolute;
+  width: 70vw;
+  height: 70vw;
+  max-width: 520px;
+  max-height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(231, 201, 138, 0.28), rgba(157, 24, 52, 0.05) 58%, transparent 72%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.landing-frame {
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(231, 201, 138, 0.35);
+  pointer-events: none;
+}
+
+.landing-frame::before,
+.landing-frame::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e7c98a;
+}
+
+.landing-frame::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.landing-frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.landing {
+  align-content: center;
+  justify-items: center;
+  gap: 28px;
+}
+
+.brand-row,
+.invitation-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.logo-plate {
+  background: linear-gradient(180deg, #f8f3ea, #e6d5b4);
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+
+.logo-plate img,
+.invitation-logos img {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.brand-cross {
+  color: var(--gold);
+  font-family: var(--display);
+  letter-spacing: 0.2em;
+}
+
+.landing-copy,
+.error-card,
+.loading-screen {
+  position: relative;
+  width: min(440px, 100%);
+  text-align: center;
+}
+
+.landing-copy h1,
+.loading-screen h2 {
+  margin: 14px 0 8px;
+  font-size: clamp(2.4rem, 10vw, 4.4rem);
+  line-height: 0.95;
+  font-weight: 600;
+}
+
+.landing-copy h1 span {
+  display: block;
+}
+
+.landing-copy h1 span:last-child {
+  margin-top: 8px;
+  font-size: 0.42em;
+  letter-spacing: 0.22em;
+}
+
+.anniversary-line,
+.support,
+.hint,
+.loading-label,
+.progress-value,
+.scan-sub,
+.error-card p,
+.invitation-card p {
+  color: var(--muted);
+}
+
+.anniversary-line {
+  margin: 8px 0 0;
+  color: var(--gold);
+  font-size: 0.92rem;
+}
+
+.support,
+.hint,
+.loading-label {
+  margin: 14px auto 0;
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
+.begin,
+.text-button,
+.experience-controls button,
+.icon-close {
+  cursor: pointer;
+}
+
+.begin {
+  margin-top: 26px;
+  border: 0;
+  border-radius: 999px;
+  padding: 15px 28px;
+  color: #24180b;
+  background: linear-gradient(180deg, #f3e2bc, #c6a15b);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  box-shadow: 0 10px 28px rgba(198, 161, 91, 0.22);
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.text-button.quiet,
+.error-actions .text-button {
+  color: var(--muted);
+}
+
+.progress {
+  width: min(240px, 70%);
+  height: 1px;
+  margin: 22px auto 0;
+  background: rgba(231, 201, 138, 0.25);
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #9d1834, #e7c98a);
+}
+
+.progress-value {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+}
+
+.scan-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(7, 6, 11, 0.2), rgba(7, 6, 11, 0.45));
+}
+
+.scan-corners {
+  position: absolute;
+  width: min(78vw, 420px);
+  height: min(78vw, 420px);
+}
+
+.scan-corners span {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e7c98a;
+}
+
+.scan-corners span:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.scan-corners span:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.scan-corners span:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.scan-corners span:nth-child(4) {
+  right: 0;
+  bottom: 0;
+  border-left: 0;
+  border-top: 0;
+}
+
+.scan-copy,
+.scan-actions {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.scan-copy {
+  margin-top: min(86vw, 460px);
+}
+
+.scan-title {
+  margin: 0;
+  font-size: clamp(0.95rem, 3.4vw, 1.2rem);
+  text-transform: uppercase;
+}
+
+.scan-sub {
+  margin: 10px 0 0;
+}
+
+.scan-actions {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 18px;
+  pointer-events: auto;
+}
+
+.mode-lost .scan-corners {
+  width: min(70vw, 320px);
+  height: min(42vw, 180px);
+}
+
+.mode-lost {
+  align-items: start;
+  padding-top: calc(28px + env(safe-area-inset-top));
+  background: linear-gradient(180deg, rgba(7, 6, 11, 0.72), transparent 42%);
+}
+
+.mode-lost .scan-copy {
+  margin-top: 0;
+}
+
+.experience-controls {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.experience-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(231, 201, 138, 0.4);
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: var(--ink);
+  background: rgba(7, 6, 11, 0.72);
+  backdrop-filter: blur(10px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+
+.error-card,
+.invitation-card,
+.capture-card {
+  border: 1px solid rgba(231, 201, 138, 0.35);
+  background: rgba(12, 10, 16, 0.92);
+  padding: 28px 22px;
+}
+
+.error-card h2,
+.invitation-card h2 {
+  margin: 10px 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+.error-actions,
+.capture-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(7, 6, 11, 0.72);
+}
+
+.invitation-card,
+.capture-card {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: min(86dvh, 760px);
+  overflow: auto;
+  text-align: center;
+}
+
+.invitation-card h2 span {
+  color: var(--gold);
+}
+
+.invitation-kicker,
+.invitation-event,
+.invitation-theme {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.invitation-theme {
+  color: #e7c98a;
+}
+
+.invitation-details {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+}
+
+.icon-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(231, 201, 138, 0.4);
+  border-radius: 50%;
+  color: var(--ink);
+  background: transparent;
+}
+
+.capture-card img,
+.capture-card video {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 28px 0 16px;
+  background: #000;
+}
+
+.preview-badge {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 5;
+  margin: 0;
+  color: var(--gold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  pointer-events: none;
+}
+
+.lil-gui {
+  z-index: 7;
+  --background-color: rgba(12, 10, 16, 0.92);
+  --text-color: #f6f0e6;
+  --title-background-color: #9d1834;
+  --widget-color: #e7c98a;
+  --padding: 6px;
+}

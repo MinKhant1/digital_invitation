@@ -1,0 +1,50 @@
+:root {
+  --ink: #f6f0e6;
+  --muted: rgba(246, 240, 230, 0.72);
+  --gold: #e7c98a;
+  --gold-deep: #a67c3d;
+  --crimson: #9d1834;
+  --midnight: #07060b;
+  --display: "Cinzel", "Times New Roman", serif;
+  --text: "Outfit", "Avenir Next", sans-serif;
+  color: var(--ink);
+  font-family: var(--text);
+  background: var(--midnight);
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--midnight);
+}
+
+body {
+  min-height: 100dvh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+h1,
+h2,
+.anniversary-line,
+.scan-title,
+.invitation-kicker,
+.invitation-event,
+.invitation-theme {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
