@@ -58,8 +58,8 @@ export class PoseStabilizer {
       this.pos.copy(this.measuredPos);
       this.quat.copy(this.measuredQuat);
     } else {
-      const posCut = trackingConfig.positionMinHz + Math.max(0, posError - 0.03) * trackingConfig.positionBeta;
-      const rotCut = trackingConfig.rotationMinHz + Math.max(0, rotError - 0.05) * trackingConfig.rotationBeta;
+      const posCut = trackingConfig.positionMinHz + posError * trackingConfig.positionBeta;
+      const rotCut = trackingConfig.rotationMinHz + rotError * trackingConfig.rotationBeta;
       this.pos.lerp(this.measuredPos, followAlpha(dt, posCut));
       this.quat.slerp(this.measuredQuat, followAlpha(dt, rotCut));
     }

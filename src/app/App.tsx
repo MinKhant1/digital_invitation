@@ -8,6 +8,7 @@ import { CapturePreview } from "../components/CapturePreview";
 import { ErrorScreen } from "../components/ErrorScreen";
 import { ExperienceControls } from "../components/ExperienceControls";
 import { InvitationModal } from "../components/InvitationModal";
+import { InviteScreen } from "../components/InviteScreen";
 import { LandingScreen } from "../components/LandingScreen";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { PreviewGate } from "../components/PreviewGate";
@@ -31,7 +32,7 @@ export function App() {
 function GuestExperience() {
   const stageRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<ARExperience | null>(null);
-  const [phase, setPhase] = useState<"landing" | "loading" | "scanning" | "experience" | "error">("landing");
+  const [phase, setPhase] = useState<"landing" | "invited" | "loading" | "scanning" | "experience" | "error">("landing");
   const [progress, setProgress] = useState(0);
   const [assets, setAssets] = useState<LoadedAssets | null>(null);
   const [session, setSession] = useState(false);
@@ -195,10 +196,11 @@ function GuestExperience() {
 
   return (
     <div className="app-shell">
-      {phase === "landing" && <LandingScreen onBegin={() => void begin()} />}
+      {phase === "landing" && <LandingScreen onBegin={() => setPhase("invited")} />}
+      {phase === "invited" && <InviteScreen onNext={() => void begin()} />}
       {phase === "loading" && <LoadingScreen progress={progress} label="Opening the camera" />}
-      {session && phase !== "landing" && <div className="stage" ref={stageRef} />}
-      {trackingDebug && session && phase !== "landing" && phase !== "loading" && (
+      {session && phase !== "landing" && phase !== "invited" && <div className="stage" ref={stageRef} />}
+      {trackingDebug && session && phase !== "landing" && phase !== "invited" && phase !== "loading" && (
         <TrackingDebugPanel experience={experienceRef} />
       )}
       {trackingPhase === "TEMPORARILY_LOST" && phase === "experience" && (

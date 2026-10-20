@@ -7,10 +7,15 @@ export const eventConfig = {
   organization2: "PRUDENTIAL",
   eventName: "5TH ANNIVERSARY CELEBRATION",
   themeLine: "IGNITE THE NEXT DECADE",
-  supporting: "Five remarkable years. One extraordinary future.",
+  supporting: "5th Anniversary celebrates the strong foundation built over the past five years.",
   date: "",
   time: "",
   venue: "",
+} as const;
+
+export const guestConfig = {
+  name: "Mr. Min Khant",
+  seat: "38",
 } as const;
 
 export function invitationLines() {

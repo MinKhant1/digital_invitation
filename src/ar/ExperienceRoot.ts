@@ -16,6 +16,7 @@ import { DecorativeParticles } from "./objects/DecorativeParticles";
 import { GoldEnergy } from "./objects/GoldEnergy";
 import { IgniteText } from "./objects/IgniteText";
 import { InvitationSculpture } from "./objects/InvitationSculpture";
+import { AgendaPlate, IgniteHologram } from "./objects/StageDressing";
 import { applyGoldBrightness, createSceneLights, type SceneLights } from "./SceneLighting";
 
 type Playback = "ready" | "playing" | "paused" | "ambient";
@@ -33,6 +34,8 @@ export class ExperienceRoot {
   private readonly ignite: IgniteText;
   private readonly anniversary: AnniversaryText;
   private readonly invitation: InvitationSculpture;
+  private readonly agenda: AgendaPlate;
+  private readonly hologram: IgniteHologram;
   private readonly timeline;
   private readonly quality: QualityPreset;
   private readonly font: Font;
@@ -59,11 +62,13 @@ export class ExperienceRoot {
       params.textDepth,
       quality.curveSegments,
     );
+    this.agenda = new AgendaPlate(assets.agenda);
+    this.hologram = new IgniteHologram(assets.ignite);
+    this.model.content.add(this.agenda.mesh, this.hologram.group);
     this.group.add(
       this.lights.group,
       this.energy.group,
       this.model.lift,
-      this.ignite.group,
       this.anniversary.group,
       this.invitation.group,
       this.particles.points,
@@ -209,6 +214,8 @@ export class ExperienceRoot {
     this.ignite.dispose();
     this.anniversary.dispose();
     this.invitation.dispose();
+    this.agenda.dispose();
+    this.hologram.dispose();
     this.lights.group.traverse((obj) => {
       const light = obj as THREE.Light;
       if (light.isLight) light.dispose();
@@ -244,6 +251,9 @@ export class ExperienceRoot {
       params.invitationZ - (1 - motion.invitation) * 0.08,
     );
     const glow = params.redGlow * (motion.glow + motion.ambientGlow);
+    const hologramOpacity = Math.max(motion.igniteOpacity, THREE.MathUtils.smoothstep(time, 0.2, 1.15));
+    this.agenda.setOpacity(THREE.MathUtils.smoothstep(time, 0.05, 0.75));
+    this.hologram.update(time, hologramOpacity);
     this.ignite.apply(motion.igniteOpacity, motion.igniteSweep, glow, time);
     this.anniversary.apply(motion.anniversaryOpacity, motion.anniversarySweep, params.goldBrightness, time);
     this.invitation.apply(motion.invitation, time);

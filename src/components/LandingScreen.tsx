@@ -8,29 +8,22 @@ interface LandingScreenProps {
 export function LandingScreen({ onBegin }: LandingScreenProps) {
   return (
     <section className="landing">
-      <div className="landing-glow" aria-hidden="true" />
-      <div className="landing-frame" aria-hidden="true" />
-      <header className="brand-row">
-        <div className="logo-plate">
-          <img src={ASSETS.yomaLogo} alt="Yoma Bank" />
+      <img className="landing-bg" src={ASSETS.background} alt="" />
+      <div className="landing-stage">
+        <div className="landing-copy">
+          <header className="brand-row">
+            <img className="brand-logo" src={ASSETS.yomaLogo} alt="Yoma Bank" />
+            <span className="brand-rule" aria-hidden="true" />
+            <img className="brand-logo" src={ASSETS.prudentialLogo} alt="Prudential" />
+          </header>
+          <h1 className="ignite-lockup">
+            <img src={ASSETS.ignite} alt="Ignite the Next Decade" />
+          </h1>
+          <p className="support">{eventConfig.supporting}</p>
         </div>
-        <span className="brand-cross">×</span>
-        <div className="logo-plate">
-          <img src={ASSETS.prudentialLogo} alt="Prudential" />
-        </div>
-      </header>
-      <div className="landing-copy">
-        <p className="eyebrow">A ceremonial invitation</p>
-        <h1>
-          <span>{eventConfig.title}</span>
-          <span>{eventConfig.subtitle}</span>
-        </h1>
-        <p className="anniversary-line">{eventConfig.anniversary}</p>
-        <p className="support">{eventConfig.supporting}</p>
-        <button className="begin" type="button" onClick={onBegin}>
-          Begin the Experience
+        <button className="landing-press" type="button" onClick={onBegin}>
+          Press here
         </button>
-        <p className="hint">Point your camera toward your invitation card.</p>
       </div>
     </section>
   );

@@ -342,6 +342,7 @@ export class EighthWallSession {
       this.callbacks.onPhase(this.phase);
       return;
     }
+    this.stabilizer.reseed();
     if (this.phase !== "TRACKING") {
       this.phase = "REACQUIRING";
       this.reacquireStarted = performance.now();

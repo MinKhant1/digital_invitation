@@ -10,6 +10,8 @@ export interface LoadedAssets {
   card: THREE.Texture;
   yoma: THREE.Texture;
   prudential: THREE.Texture;
+  agenda: THREE.Texture;
+  ignite: THREE.Texture;
 }
 
 export class AssetError extends Error {
@@ -54,7 +56,7 @@ export function preloadAssets(onProgress?: (progress: number) => void) {
 async function loadAll(onProgress?: (progress: number) => void): Promise<LoadedAssets> {
   onProgress?.(0.05);
   const modelResponse = await fetch(ASSETS.model);
-  if (!modelResponse.ok) throw new AssetError("missing-model", "five.glb did not load");
+  if (!modelResponse.ok) throw new AssetError("missing-model", "stage.glb did not load");
   const modelBuffer = await modelResponse.arrayBuffer();
   onProgress?.(0.35);
 
@@ -68,7 +70,7 @@ async function loadAll(onProgress?: (progress: number) => void): Promise<LoadedA
 
   const gltf = await new Promise<GLTF>((resolve, reject) => {
     new GLTFLoader().parse(modelBuffer, "", resolve, () => {
-      reject(new AssetError("missing-model", "five.glb could not be parsed"));
+      reject(new AssetError("missing-model", "stage.glb could not be parsed"));
     });
   });
   onProgress?.(0.7);
@@ -81,11 +83,13 @@ async function loadAll(onProgress?: (progress: number) => void): Promise<LoadedA
   onProgress?.(0.82);
 
   const textures = new THREE.TextureLoader();
-  const [card, yoma, prudential] = await Promise.all([
+  const [card, yoma, prudential, agenda, ignite] = await Promise.all([
     loadTexture(textures, ASSETS.cardImage),
     loadTexture(textures, ASSETS.yomaLogo),
     loadTexture(textures, ASSETS.prudentialLogo),
+    loadTexture(textures, ASSETS.agenda),
+    loadTexture(textures, ASSETS.ignite),
   ]);
   onProgress?.(1);
-  return { gltf, font, card, yoma, prudential };
+  return { gltf, font, card, yoma, prudential, agenda, ignite };
 }

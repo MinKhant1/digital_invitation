@@ -84,8 +84,8 @@ export function createLiveParams(quality: QualityPreset): LiveParams {
     modelScale: 1,
     modelHeight: 0.42,
     modelPositionX: 0,
-    modelPositionY: 0.06,
-    modelPositionZ: 0.2,
+    modelPositionY: 0,
+    modelPositionZ: 0.02,
     modelRotationX: 0,
     modelRotationY: 0,
     modelRotationZ: 0,
@@ -112,14 +112,16 @@ export const trackingConfig = {
   lossGraceMs: 1400,
   stableHoldMs: 360,
   searchTimeoutMs: 28000,
-  // Rigid visual follow, in Hz. This does not write the engine pose.
-  // Beta adds Hz for each marker-width, or radian, the picture has fallen behind.
-  positionMinHz: 1.5,
-  positionBeta: 26,
-  rotationMinHz: 1.5,
-  rotationBeta: 16,
-  snapDistance: 0.6,
-  snapAngle: 1,
+  // Follow the measured card pose closely enough that a tilt or a move
+  // stays on the card. The minimum rate only damps single-frame noise.
+  // Beta raises that rate as soon as the picture falls behind, in Hz per
+  // card-width and per radian. Snap covers a jump after the card was lost.
+  positionMinHz: 14,
+  positionBeta: 160,
+  rotationMinHz: 18,
+  rotationBeta: 110,
+  snapDistance: 0.18,
+  snapAngle: 0.28,
 };
 
 export const sceneConfig = {
