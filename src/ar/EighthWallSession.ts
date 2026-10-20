@@ -292,7 +292,7 @@ export class EighthWallSession {
     this.scene = scene;
     this.renderer = renderer;
     this.mounted = true;
-    renderer.setPixelRatio(1);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.dprMax));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;

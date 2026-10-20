@@ -3,6 +3,8 @@ import { ASSETS } from "../config/assets";
 
 interface CameraOverlayProps {
   mode: "scanning" | "acquiring" | "lost" | "missing";
+  loading?: boolean;
+  progress?: number;
   onKeepLooking?: () => void;
   onBack?: () => void;
 }
@@ -33,15 +35,16 @@ function viewfinderMask(x: number, y: number, w: number, h: number) {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
-export function CameraOverlay({ mode, onKeepLooking, onBack }: CameraOverlayProps) {
+export function CameraOverlay({ mode, loading = false, progress = 0, onKeepLooking, onBack }: CameraOverlayProps) {
   const text = copy[mode];
   const framed = mode !== "lost";
+  const amount = Math.round(Math.min(1, Math.max(0, progress)) * 100);
   const rootRef = useRef<HTMLDivElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const [mask, setMask] = useState(() => viewfinderMask(7, 34, 86, 36));
 
   useLayoutEffect(() => {
-    if (!framed) return;
+    if (!framed || loading) return;
     const root = rootRef.current;
     const frame = windowRef.current;
     if (!root || !frame) return;
@@ -60,7 +63,7 @@ export function CameraOverlay({ mode, onKeepLooking, onBack }: CameraOverlayProp
     observer.observe(root);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [framed]);
+  }, [framed, loading]);
 
   return (
     <div className={`scan-overlay mode-${mode}`} ref={rootRef}>
@@ -70,7 +73,7 @@ export function CameraOverlay({ mode, onKeepLooking, onBack }: CameraOverlayProp
             className="scan-bg"
             src={ASSETS.background}
             alt=""
-            style={{ maskImage: mask, WebkitMaskImage: mask }}
+            style={loading ? undefined : { maskImage: mask, WebkitMaskImage: mask }}
           />
           <header className="brand-row scan-brands">
             <img className="brand-logo" src={ASSETS.yomaLogo} alt="Yoma Bank" />
@@ -80,9 +83,17 @@ export function CameraOverlay({ mode, onKeepLooking, onBack }: CameraOverlayProp
         </>
       )}
       <div className="scan-copy">
-        <p className="scan-title">{text.title}</p>
-        <p className="scan-sub">{text.body}</p>
-        {mode === "missing" && (
+        <p className="scan-title">{loading ? "Preparing the stage" : text.title}</p>
+        <p className="scan-sub">{loading ? "The invitation is opening on this page." : text.body}</p>
+        {loading && (
+          <div className="scan-progress">
+            <div className="progress" aria-hidden="true">
+              <span style={{ width: `${amount}%` }} />
+            </div>
+            <p className="progress-value">{amount}%</p>
+          </div>
+        )}
+        {mode === "missing" && !loading && (
           <div className="scan-actions">
             <button type="button" className="scan-primary" onClick={onKeepLooking}>
               Keep looking
@@ -93,7 +104,7 @@ export function CameraOverlay({ mode, onKeepLooking, onBack }: CameraOverlayProp
           </div>
         )}
       </div>
-      {framed && <div className="scan-window" ref={windowRef} aria-hidden="true" />}
+      {framed && !loading && <div className="scan-window" ref={windowRef} aria-hidden="true" />}
     </div>
   );
 }

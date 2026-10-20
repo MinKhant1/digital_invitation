@@ -10,7 +10,6 @@ import { ExperienceControls } from "../components/ExperienceControls";
 import { InvitationModal } from "../components/InvitationModal";
 import { InviteScreen } from "../components/InviteScreen";
 import { LandingScreen } from "../components/LandingScreen";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { PreviewGate } from "../components/PreviewGate";
 import { TrackingDebugPanel } from "../components/TrackingDebugPanel";
 import { createLiveParams, qualityPresets, resolveQuality } from "../config/experience";
@@ -32,7 +31,7 @@ export function App() {
 function GuestExperience() {
   const stageRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<ARExperience | null>(null);
-  const [phase, setPhase] = useState<"landing" | "invited" | "loading" | "scanning" | "experience" | "error">("landing");
+  const [phase, setPhase] = useState<"landing" | "invited" | "scanning" | "experience" | "error">("landing");
   const [progress, setProgress] = useState(0);
   const [assets, setAssets] = useState<LoadedAssets | null>(null);
   const [session, setSession] = useState(false);
@@ -108,7 +107,8 @@ function GuestExperience() {
       setPhase("error");
       return;
     }
-    setPhase("loading");
+    setProgress(0);
+    setPhase("scanning");
     try {
       const loaded = await preloadAssets(setProgress);
       setAssets(loaded);
@@ -184,23 +184,23 @@ function GuestExperience() {
       : trackingPhase === "ACQUIRING"
         ? "acquiring"
         : "scanning";
+  const preparing = phase === "scanning" && !session;
   const showOverlay =
-    session &&
-    phase !== "error" &&
-    phase !== "loading" &&
-    (searchMiss ||
-      trackingPhase === "INITIALIZING" ||
-      trackingPhase === "SEARCHING" ||
-      trackingPhase === "ACQUIRING" ||
-      trackingPhase === "LOST");
+    preparing ||
+    (session &&
+      phase !== "error" &&
+      (searchMiss ||
+        trackingPhase === "INITIALIZING" ||
+        trackingPhase === "SEARCHING" ||
+        trackingPhase === "ACQUIRING" ||
+        trackingPhase === "LOST"));
 
   return (
     <div className="app-shell">
       {phase === "landing" && <LandingScreen onBegin={() => setPhase("invited")} />}
       {phase === "invited" && <InviteScreen onNext={() => void begin()} />}
-      {phase === "loading" && <LoadingScreen progress={progress} label="Opening the camera" />}
       {session && phase !== "landing" && phase !== "invited" && <div className="stage" ref={stageRef} />}
-      {trackingDebug && session && phase !== "landing" && phase !== "invited" && phase !== "loading" && (
+      {trackingDebug && session && phase !== "landing" && phase !== "invited" && (
         <TrackingDebugPanel experience={experienceRef} />
       )}
       {trackingPhase === "TEMPORARILY_LOST" && phase === "experience" && (
@@ -209,6 +209,8 @@ function GuestExperience() {
       {showOverlay && (
         <CameraOverlay
           mode={overlayMode}
+          loading={preparing}
+          progress={progress}
           onKeepLooking={() => {
             setSearchMiss(false);
             experienceRef.current?.extendSearch();

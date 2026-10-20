@@ -3,7 +3,6 @@ import { preloadAssets, AssetError } from "../ar/AssetLoader";
 import { PreviewExperience } from "../ar/PreviewExperience";
 import { createLiveParams, qualityPresets, resolveQuality } from "../config/experience";
 import { ERROR_COPY, type ExperienceErrorCode } from "../lib/errors";
-import { LoadingScreen } from "./LoadingScreen";
 
 export function PreviewGate() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -39,7 +38,15 @@ export function PreviewGate() {
   return (
     <div className="preview-shell">
       <div className="stage" ref={stageRef} />
-      {!ready && !error && <LoadingScreen progress={progress} label="Opening the studio preview" />}
+      {!ready && !error && (
+        <div className="stage-loading" role="status" aria-live="polite">
+          <p>Preparing the stage</p>
+          <div className="progress" aria-hidden="true">
+            <span style={{ width: `${Math.round(progress * 100)}%` }} />
+          </div>
+          <p className="progress-value">{Math.round(progress * 100)}%</p>
+        </div>
+      )}
       {error && (
         <section className="error-screen" role="alert">
           <div className="error-card">

@@ -2,6 +2,8 @@ import * as THREE from "three";
 import {
   hologramFragmentShader,
   hologramVertexShader,
+  holoBeamFragmentShader,
+  holoBeamVertexShader,
   holoRingFragmentShader,
   holoRingVertexShader,
 } from "../../shaders/hologram/igniteHologram";
@@ -18,12 +20,16 @@ export class AgendaPlate {
   constructor(texture: THREE.Texture) {
     const width = 6.6;
     const depth = width * AGENDA_ASPECT;
+    texture.anisotropy = 16;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
+    texture.needsUpdate = true;
     this.material = new THREE.MeshBasicMaterial({
       map: texture,
-      transparent: true,
-      opacity: 1,
-      toneMapped: true,
-      side: THREE.DoubleSide,
+      transparent: false,
+      toneMapped: false,
+      side: THREE.FrontSide,
     });
     this.material.polygonOffset = true;
     this.material.polygonOffsetFactor = -2;
@@ -47,9 +53,11 @@ export class AgendaPlate {
 export class IgniteHologram {
   readonly group = new THREE.Group();
   private readonly mark: THREE.Mesh;
-  private readonly ring: THREE.Mesh;
+  private readonly projector: THREE.Mesh;
+  private readonly beams: THREE.Mesh;
   private readonly markMaterial: THREE.ShaderMaterial;
-  private readonly ringMaterial: THREE.ShaderMaterial;
+  private readonly projectorMaterial: THREE.ShaderMaterial;
+  private readonly beamMaterial: THREE.ShaderMaterial;
   private readonly restY: number;
   private readonly light: THREE.PointLight;
 
@@ -57,6 +65,7 @@ export class IgniteHologram {
     const width = 2.72;
     const height = width / IGNITE_ASPECT;
     this.restY = 6.4;
+    const columnHeight = this.restY - height * 0.08;
 
     this.markMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -75,7 +84,7 @@ export class IgniteHologram {
     this.mark = new THREE.Mesh(new THREE.PlaneGeometry(width, height), this.markMaterial);
     this.mark.position.y = this.restY;
 
-    this.ringMaterial = new THREE.ShaderMaterial({
+    this.projectorMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uOpacity: { value: 0 },
@@ -87,34 +96,63 @@ export class IgniteHologram {
       toneMapped: false,
       premultipliedAlpha: true,
       blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
     });
-    this.ring = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.7), this.ringMaterial);
-    this.ring.rotation.x = -Math.PI / 2;
-    this.ring.position.y = 0.02;
+    this.projector = new THREE.Mesh(new THREE.PlaneGeometry(2.55, 2.55), this.projectorMaterial);
+    this.projector.rotation.x = -Math.PI / 2;
+    this.projector.position.y = 0.03;
 
-    this.light = new THREE.PointLight(0xffc48a, 0, 6.5, 2);
-    this.light.position.set(0, 6.1, 0.2);
+    this.beamMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },
+      },
+      vertexShader: holoBeamVertexShader,
+      fragmentShader: holoBeamFragmentShader,
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false,
+      premultipliedAlpha: true,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    const beam = new THREE.PlaneGeometry(width * 1.05, columnHeight);
+    this.beams = new THREE.Mesh(beam, this.beamMaterial);
+    this.beams.position.y = columnHeight * 0.5 + 0.02;
+    for (let i = 1; i < 4; i += 1) {
+      const copy = new THREE.Mesh(beam, this.beamMaterial);
+      copy.rotation.y = (i * Math.PI) / 4;
+      copy.position.y = this.beams.position.y;
+      this.group.add(copy);
+    }
 
-    this.group.add(this.mark, this.ring, this.light);
+    this.light = new THREE.PointLight(0xffc46a, 0, 7.5, 2);
+    this.light.position.set(0, columnHeight * 0.45, 0.15);
+
+    this.group.add(this.mark, this.projector, this.beams, this.light);
     this.group.position.copy(STAGE_MARK);
   }
 
   update(time: number, opacity: number) {
-    const hover = Math.sin(time * 1.35) * 0.045;
+    const hover = Math.sin(time * 1.35) * 0.035;
     this.mark.position.y = this.restY + hover;
-    this.mark.rotation.y = Math.sin(time * 0.45) * 0.06;
+    this.mark.rotation.y = Math.sin(time * 0.45) * 0.04;
     this.markMaterial.uniforms.uTime.value = time;
     this.markMaterial.uniforms.uOpacity.value = opacity;
-    this.ringMaterial.uniforms.uTime.value = time;
-    this.ringMaterial.uniforms.uOpacity.value = opacity;
-    this.light.intensity = opacity * 1.35;
+    this.projectorMaterial.uniforms.uTime.value = time;
+    this.projectorMaterial.uniforms.uOpacity.value = opacity;
+    this.beamMaterial.uniforms.uTime.value = time;
+    this.beamMaterial.uniforms.uOpacity.value = opacity;
+    this.light.intensity = opacity * 2.4;
   }
 
   dispose() {
     this.mark.geometry.dispose();
-    this.ring.geometry.dispose();
+    this.projector.geometry.dispose();
+    this.beams.geometry.dispose();
     this.markMaterial.dispose();
-    this.ringMaterial.dispose();
+    this.projectorMaterial.dispose();
+    this.beamMaterial.dispose();
     this.light.dispose();
   }
 }

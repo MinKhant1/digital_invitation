@@ -363,6 +363,52 @@ canvas.xr-canvas {
   letter-spacing: 0.18em;
 }
 
+.scan-progress {
+  width: min(240px, 72%);
+  margin: 18px auto 0;
+}
+
+.scan-progress .progress {
+  width: 100%;
+  height: 3px;
+  margin: 0;
+  border-radius: 99px;
+  background: rgba(225, 6, 19, 0.16);
+}
+
+.scan-progress .progress span {
+  border-radius: inherit;
+  background: #e10613;
+}
+
+.scan-progress .progress-value {
+  color: #3a3a3a;
+}
+
+.stage-loading {
+  position: fixed;
+  left: 50%;
+  bottom: 16%;
+  z-index: 4;
+  width: min(280px, 80vw);
+  transform: translateX(-50%);
+  color: #f4e2bc;
+  text-align: center;
+  pointer-events: none;
+}
+
+.stage-loading p {
+  margin: 0;
+}
+
+.stage-loading .progress {
+  background: rgba(244, 226, 188, 0.28);
+}
+
+.stage-loading .progress span {
+  background: #f4e2bc;
+}
+
 .scan-overlay {
   position: fixed;
   inset: 0;

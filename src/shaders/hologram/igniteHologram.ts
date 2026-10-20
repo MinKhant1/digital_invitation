@@ -65,13 +65,59 @@ varying vec2 vUv;
 void main() {
   vec2 p = vUv * 2.0 - 1.0;
   float r = length(p);
-  float ring = smoothstep(0.92, 0.72, r) * smoothstep(0.42, 0.68, r);
-  float core = smoothstep(0.55, 0.0, r);
-  float spin = 0.65 + 0.35 * sin(atan(p.y, p.x) * 8.0 - uTime * 1.4);
-  float spokes = 0.55 + 0.45 * sin(atan(p.y, p.x) * 3.0 + uTime * 0.7);
-  float alpha = (ring * spin + core * 0.28 * spokes) * uOpacity;
+  if (r > 1.0) discard;
+  float ang = atan(p.y, p.x);
+
+  float core = smoothstep(0.16, 0.0, r);
+  float halo = smoothstep(0.42, 0.0, r) * 0.35;
+  float ringA = smoothstep(0.018, 0.0, abs(r - 0.28));
+  float ringB = smoothstep(0.012, 0.0, abs(r - 0.46));
+  float ringC = smoothstep(0.016, 0.0, abs(r - 0.66));
+  float ringD = smoothstep(0.01, 0.0, abs(r - 0.84));
+  float ticks = step(0.62, fract(ang * 1.2732)) * smoothstep(0.58, 0.64, r) * smoothstep(0.78, 0.7, r);
+  float dashes = step(0.42, fract(ang * 3.8197 + uTime * 0.08)) * ringB;
+  float spin = 0.55 + 0.45 * sin(ang * 7.0 - uTime * 1.1);
+  float arc = ringC * spin;
+
+  float alpha = (core * 0.95 + halo + ringA + dashes + arc + ringD * 0.85 + ticks) * uOpacity;
   if (alpha < 0.02) discard;
-  vec3 color = mix(vec3(0.85, 0.12, 0.16), vec3(1.0, 0.78, 0.34), ring);
+  vec3 gold = vec3(1.0, 0.82, 0.38);
+  vec3 amber = vec3(1.0, 0.48, 0.12);
+  vec3 color = mix(amber, gold, clamp(core + ringA + ringD, 0.0, 1.0));
+  color += gold * core * 0.65;
+  gl_FragColor = vec4(color * alpha, alpha);
+}
+`;
+
+export const holoBeamVertexShader = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+export const holoBeamFragmentShader = /* glsl */ `
+precision mediump float;
+uniform float uTime;
+uniform float uOpacity;
+varying vec2 vUv;
+
+void main() {
+  float y = vUv.y;
+  float spread = mix(0.16, 1.0, smoothstep(0.0, 1.0, y));
+  float x = (vUv.x - 0.5) / spread;
+  if (abs(x) > 0.5) discard;
+
+  float dist = abs(x) * 2.0;
+  float shaft = exp(-dist * dist * 5.5);
+  float rays = pow(max(0.0, cos(x * 28.0 + uTime * 0.6)), 8.0);
+  float fine = pow(max(0.0, sin(x * 70.0 - uTime * 1.3)), 16.0);
+  float flicker = 0.86 + 0.14 * sin(uTime * 2.2 + y * 9.0);
+  float lift = smoothstep(0.0, 0.05, y);
+  float alpha = shaft * (0.42 + rays * 0.7 + fine * 0.45) * lift * flicker * uOpacity;
+  if (alpha < 0.015) discard;
+  vec3 color = mix(vec3(1.0, 0.93, 0.62), vec3(1.0, 0.52, 0.14), dist);
   gl_FragColor = vec4(color * alpha, alpha);
 }
 `;
