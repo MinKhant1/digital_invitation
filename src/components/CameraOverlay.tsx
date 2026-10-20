@@ -1,5 +1,5 @@
 interface CameraOverlayProps {
-  mode: "scanning" | "lost" | "missing";
+  mode: "scanning" | "acquiring" | "lost" | "missing";
   onKeepLooking?: () => void;
   onBack?: () => void;
 }
@@ -17,6 +17,11 @@ export function CameraOverlay({ mode, onKeepLooking, onBack }: CameraOverlayProp
         <div className="scan-copy">
           <p className="scan-title">The card left the frame</p>
           <p className="scan-sub">Bring the invitation back into view. The ceremony will continue.</p>
+        </div>
+      ) : mode === "acquiring" ? (
+        <div className="scan-copy">
+          <p className="scan-title">Hold steady</p>
+          <p className="scan-sub">The card is in view. Waiting for a stable pose.</p>
         </div>
       ) : (
         <div className="scan-copy">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ARExperience } from "../ar/ARExperience";
 import { AssetError, preloadAssets, type LoadedAssets } from "../ar/AssetLoader";
 import { canRecordVideo } from "../ar/capture";
+import type { TrackingPhase } from "../ar/trackingTypes";
 import { CameraOverlay } from "../components/CameraOverlay";
 import { CapturePreview } from "../components/CapturePreview";
 import { ErrorScreen } from "../components/ErrorScreen";
@@ -10,11 +11,16 @@ import { InvitationModal } from "../components/InvitationModal";
 import { LandingScreen } from "../components/LandingScreen";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { PreviewGate } from "../components/PreviewGate";
+import { TrackingDebugPanel } from "../components/TrackingDebugPanel";
 import { createLiveParams, qualityPresets, resolveQuality } from "../config/experience";
 import { browserCanAttemptAR, cameraErrorCode, type ExperienceErrorCode } from "../lib/errors";
 
 function isPreview() {
   return new URLSearchParams(window.location.search).get("preview") === "true";
+}
+
+function isTrackingDebug() {
+  return new URLSearchParams(window.location.search).get("trackingDebug") === "true";
 }
 
 export function App() {
@@ -29,7 +35,7 @@ function GuestExperience() {
   const [progress, setProgress] = useState(0);
   const [assets, setAssets] = useState<LoadedAssets | null>(null);
   const [session, setSession] = useState(false);
-  const [lost, setLost] = useState(false);
+  const [trackingPhase, setTrackingPhase] = useState<TrackingPhase>("INITIALIZING");
   const [searchMiss, setSearchMiss] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -37,6 +43,7 @@ function GuestExperience() {
   const [capture, setCapture] = useState<{ blob: Blob; url: string } | null>(null);
   const [invitationOpen, setInvitationOpen] = useState(false);
   const recordable = canRecordVideo();
+  const trackingDebug = isTrackingDebug();
 
   useEffect(() => {
     void preloadAssets().catch(() => undefined);
@@ -45,14 +52,21 @@ function GuestExperience() {
   useEffect(() => {
     if (!session || !assets || !stageRef.current) return;
     const quality = qualityPresets[resolveQuality()];
-    const experience = new ARExperience(stageRef.current, assets, quality, createLiveParams(quality), {
-      onScanning: () => setPhase("scanning"),
-      onTracking: () => {
-        setLost(false);
-        setSearchMiss(false);
-        setPhase("experience");
+    const experience = new ARExperience(stageRef.current, assets, quality, createLiveParams(quality), trackingDebug, {
+      onPhase: (next) => {
+        setTrackingPhase(next);
+        if (next === "TRACKING" || next === "REACQUIRING" || next === "TEMPORARILY_LOST") {
+          setSearchMiss(false);
+          setPhase("experience");
+          return;
+        }
+        if (next === "LOST") {
+          setSearchMiss(false);
+          setPhase((current) => (current === "experience" ? current : "scanning"));
+          return;
+        }
+        setPhase((current) => (current === "experience" ? current : "scanning"));
       },
-      onLost: () => setLost(true),
       onRevealComplete: () => setRevealed(true),
       onError: (code) => {
         setError(code);
@@ -73,7 +87,7 @@ function GuestExperience() {
       experience.dispose();
       experienceRef.current = null;
     };
-  }, [session, assets]);
+  }, [session, assets, trackingDebug]);
 
   async function begin() {
     const support = browserCanAttemptAR();
@@ -115,7 +129,7 @@ function GuestExperience() {
     setSession(false);
     setPhase("landing");
     setError(null);
-    setLost(false);
+    setTrackingPhase("INITIALIZING");
     setSearchMiss(false);
     setRevealed(false);
     setRecording(false);
@@ -162,14 +176,34 @@ function GuestExperience() {
     }
   }
 
-  const overlayMode = searchMiss ? "missing" : lost ? "lost" : "scanning";
-  const showOverlay = session && phase !== "error" && phase !== "loading" && (phase === "scanning" || lost || searchMiss);
+  const overlayMode = searchMiss
+    ? "missing"
+    : trackingPhase === "LOST" && phase === "experience"
+      ? "lost"
+      : trackingPhase === "ACQUIRING"
+        ? "acquiring"
+        : "scanning";
+  const showOverlay =
+    session &&
+    phase !== "error" &&
+    phase !== "loading" &&
+    (searchMiss ||
+      trackingPhase === "INITIALIZING" ||
+      trackingPhase === "SEARCHING" ||
+      trackingPhase === "ACQUIRING" ||
+      trackingPhase === "LOST");
 
   return (
     <div className="app-shell">
       {phase === "landing" && <LandingScreen onBegin={() => void begin()} />}
       {phase === "loading" && <LoadingScreen progress={progress} label="Opening the camera" />}
       {session && phase !== "landing" && <div className="stage" ref={stageRef} />}
+      {trackingDebug && session && phase !== "landing" && phase !== "loading" && (
+        <TrackingDebugPanel experience={experienceRef} />
+      )}
+      {trackingPhase === "TEMPORARILY_LOST" && phase === "experience" && (
+        <p className="tracking-hold">Holding the card's place for a moment.</p>
+      )}
       {showOverlay && (
         <CameraOverlay
           mode={overlayMode}
@@ -202,6 +236,6 @@ function startFailure(reason: unknown): ExperienceErrorCode {
   if (reason instanceof DOMException) return cameraErrorCode(reason);
   const message = reason instanceof Error ? reason.message : "";
   if (/webgl/i.test(message)) return "webgl";
-  if (/target|\.mind|fetch/i.test(message)) return "missing-target";
+  if (/target|image-target|fetch/i.test(message)) return "missing-target";
   return "camera-unavailable";
 }

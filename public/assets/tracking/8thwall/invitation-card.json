@@ -1,0 +1,26 @@
+{
+  "imagePath": "/assets/tracking/8thwall/invitation-card_luminance.jpg",
+  "metadata": {
+    "source": "invitation-card.jpg",
+    "fullCardScale": 1.2741116751269036
+  },
+  "name": "invitation-card",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 108,
+    "width": 591,
+    "height": 788,
+    "isRotated": true,
+    "originalWidth": 591,
+    "originalHeight": 1004
+  },
+  "resources": {
+    "originalImage": "invitation-card_original.jpg",
+    "croppedImage": "invitation-card_cropped.jpg",
+    "thumbnailImage": "invitation-card_thumbnail.jpg",
+    "luminanceImage": "invitation-card_luminance.jpg"
+  },
+  "created": 1792478036827,
+  "updated": 1792478036827
+}

@@ -131,23 +131,17 @@ export function createLiveParams(quality: QualityPreset): LiveParams {
 
 export const trackingConfig = {
   maxTrack: 1,
-  // MindAR filters the 16 matrix numbers independently, which shears the pose.
-  // These values pass the raw measurement through. PoseStabilizer does the smoothing.
-  filterMinCF: 1,
-  filterBeta: 0,
-  warmupTolerance: 6,
-  missTolerance: 10,
-  lossGraceMs: 480,
-  stableHoldMs: 320,
+  lossGraceMs: 1400,
+  stableHoldMs: 360,
   searchTimeoutMs: 28000,
-  // Rigid follow, in Hz. Beta is extra Hz per marker-width (or radian) that the scene has fallen behind.
-  // The rest frequency stays put during tracker noise. Beta only rises once the pose is actually late.
+  // Rigid visual follow, in Hz. This does not write the engine pose.
+  // Beta adds Hz for each marker-width, or radian, the picture has fallen behind.
   positionMinHz: 1.5,
   positionBeta: 26,
   rotationMinHz: 1.5,
   rotationBeta: 16,
-  snapDistance: 0.45,
-  snapAngle: 0.6,
+  snapDistance: 0.6,
+  snapAngle: 1,
 };
 
 export const sceneConfig = {

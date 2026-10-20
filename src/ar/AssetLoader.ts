@@ -60,7 +60,10 @@ async function loadAll(onProgress?: (progress: number) => void): Promise<LoadedA
 
   const targetResponse = await fetch(ASSETS.imageTarget);
   if (!targetResponse.ok) throw new AssetError("missing-target", "invitation target did not load");
-  await targetResponse.arrayBuffer();
+  const target = (await targetResponse.json()) as { imagePath?: string };
+  if (!target.imagePath) throw new AssetError("missing-target", "invitation target is missing its image");
+  const luminance = await fetch(target.imagePath);
+  if (!luminance.ok) throw new AssetError("missing-target", "invitation target image did not load");
   onProgress?.(0.5);
 
   const gltf = await new Promise<GLTF>((resolve, reject) => {

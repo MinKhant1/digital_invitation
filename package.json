@@ -4,8 +4,8 @@
   "description": "Yoma Bank × Prudential 5th anniversary WebAR invitation — Ignite the Next Decade.",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/sync-assets.mjs && vite --host",
-    "build": "node scripts/sync-assets.mjs && tsc --noEmit && vite build",
+    "dev": "node scripts/sync-assets.mjs && node scripts/sync-xr.mjs && vite --host",
+    "build": "node scripts/sync-assets.mjs && node scripts/sync-xr.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit"
   },
@@ -30,10 +30,10 @@
     "vite": "^6.3.6"
   },
   "dependencies": {
+    "@8thwall/engine-binary": "^1.0.0",
     "gsap": "^3.12.7",
     "lil-gui": "^0.20.0",
     "lucide-react": "^0.511.0",
-    "mind-ar": "^1.2.5",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "three": "^0.160.1"

@@ -7,3 +7,4 @@ dist
 .vercel
 tmp
 *.tsbuildinfo
+public/xr
