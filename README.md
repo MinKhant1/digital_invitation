@@ -6,7 +6,7 @@ Tracking uses the 8th Wall distributed engine (`@8thwall/engine-binary`) with im
 
 ## Experience
 
-Guests open the site, press **Begin the Experience**, and point the phone at the printed invitation card. The engine anchors a golden number 5, two silk cloths, glowing type, and a floating invitation plaque to the card.
+Guests open the site, press **Begin the Experience**, and point the phone at the printed invitation card. The engine anchors a golden number 5, glowing type, and a floating invitation plaque to the card.
 
 Desktop development does not need a camera:
 

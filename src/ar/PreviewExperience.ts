@@ -155,15 +155,6 @@ export class PreviewExperience {
     model.add(params, "modelRotationY", -Math.PI, Math.PI, 0.01).onChange(() => root.applyTransforms());
     model.add(params, "modelRotationZ", -Math.PI, Math.PI, 0.01).onChange(() => root.applyTransforms());
 
-    const fabric = gui.addFolder("Fabric");
-    fabric.add(params, "redFabricWidth", 0.06, 0.4, 0.005).onFinishChange(() => root.rebuildFabrics());
-    fabric.add(params, "whiteFabricWidth", 0.06, 0.4, 0.005).onFinishChange(() => root.rebuildFabrics());
-    fabric.add(params, "fabricPathSpread", 0.6, 1.5, 0.01).onFinishChange(() => root.rebuildFabrics());
-    fabric.add(params, "fabricPathLift", -0.15, 0.25, 0.005).onFinishChange(() => root.rebuildFabrics());
-    fabric.add(params, "waveAmplitude", 0, 0.08, 0.001);
-    fabric.add(params, "waveFrequency", 0.2, 3, 0.01);
-    fabric.add(params, "waveSpeed", 0, 2, 0.01);
-
     const type = gui.addFolder("Typography");
     type.add(params, "textSize", 0.6, 1.6, 0.01).onFinishChange(() => root.rebuildTypography());
     type.add(params, "textDepth", 0.002, 0.04, 0.001).onFinishChange(() => root.rebuildTypography());

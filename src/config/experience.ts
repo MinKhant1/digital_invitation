@@ -9,8 +9,6 @@ export interface QualityPreset {
   dprMax: number;
   dprMin: number;
   particles: number;
-  fabricLength: number;
-  fabricWidthSegments: number;
   curveSegments: number;
   outlines: boolean;
   antialias: boolean;
@@ -22,8 +20,6 @@ export const qualityPresets: Record<QualityName, QualityPreset> = {
     dprMax: 1.25,
     dprMin: 1,
     particles: 48,
-    fabricLength: 48,
-    fabricWidthSegments: 8,
     curveSegments: 2,
     outlines: false,
     antialias: false,
@@ -33,8 +29,6 @@ export const qualityPresets: Record<QualityName, QualityPreset> = {
     dprMax: 1.5,
     dprMin: 1,
     particles: 110,
-    fabricLength: 80,
-    fabricWidthSegments: 12,
     curveSegments: 3,
     outlines: false,
     antialias: true,
@@ -44,8 +38,6 @@ export const qualityPresets: Record<QualityName, QualityPreset> = {
     dprMax: 2,
     dprMin: 1.25,
     particles: 200,
-    fabricLength: 112,
-    fabricWidthSegments: 18,
     curveSegments: 4,
     outlines: true,
     antialias: true,
@@ -62,13 +54,6 @@ export interface LiveParams {
   modelRotationX: number;
   modelRotationY: number;
   modelRotationZ: number;
-  redFabricWidth: number;
-  whiteFabricWidth: number;
-  fabricPathSpread: number;
-  fabricPathLift: number;
-  waveAmplitude: number;
-  waveFrequency: number;
-  waveSpeed: number;
   textSize: number;
   textDepth: number;
   igniteX: number;
@@ -104,13 +89,6 @@ export function createLiveParams(quality: QualityPreset): LiveParams {
     modelRotationX: 0,
     modelRotationY: 0,
     modelRotationZ: 0,
-    redFabricWidth: 0.26,
-    whiteFabricWidth: 0.24,
-    fabricPathSpread: 1,
-    fabricPathLift: 0,
-    waveAmplitude: 0.03,
-    waveFrequency: 1.15,
-    waveSpeed: 0.85,
     textSize: 1,
     textDepth: 0.012,
     igniteX: 0,
@@ -166,8 +144,6 @@ export interface MotionState {
   modelLift: number;
   ambientLift: number;
   lightSweep: number;
-  fabricReveal: number;
-  fabricOpen: number;
   igniteOpacity: number;
   igniteSweep: number;
   igniteLift: number;
@@ -196,8 +172,6 @@ export function createMotion(): MotionState {
     modelLift: 0,
     ambientLift: 0,
     lightSweep: 0,
-    fabricReveal: 0,
-    fabricOpen: 0,
     igniteOpacity: 0,
     igniteSweep: 0,
     igniteLift: -0.035,

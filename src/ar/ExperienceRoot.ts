@@ -13,8 +13,6 @@ import type { LoadedAssets } from "./AssetLoader";
 import { AnniversaryModel } from "./objects/AnniversaryModel";
 import { AnniversaryText } from "./objects/AnniversaryText";
 import { DecorativeParticles } from "./objects/DecorativeParticles";
-import { FlowingFabric } from "./objects/FlowingFabric";
-import { redFabricPoints, whiteFabricPoints } from "./objects/fabricPaths";
 import { GoldEnergy } from "./objects/GoldEnergy";
 import { IgniteText } from "./objects/IgniteText";
 import { InvitationSculpture } from "./objects/InvitationSculpture";
@@ -30,8 +28,6 @@ export class ExperienceRoot {
   readonly model: AnniversaryModel;
   onRevealComplete: (() => void) | null = null;
   onFrame: ((time: number) => void) | null = null;
-  private readonly red: FlowingFabric;
-  private readonly white: FlowingFabric;
   private readonly energy: GoldEnergy;
   private readonly particles: DecorativeParticles;
   private readonly ignite: IgniteText;
@@ -54,8 +50,6 @@ export class ExperienceRoot {
     this.model = new AnniversaryModel(assets.gltf, quality);
     this.energy = new GoldEnergy();
     this.particles = new DecorativeParticles(params.particleCount);
-    this.red = this.createFabric(-1, params.redFabricWidth, "#9d1834", "#f3d7a2");
-    this.white = this.createFabric(1, params.whiteFabricWidth, "#f7f2ea", "#e4c78a");
     this.ignite = new IgniteText(assets.font, params.textSize, params.textDepth, quality.curveSegments);
     this.anniversary = new AnniversaryText(assets.font, params.textSize, params.textDepth, quality.curveSegments);
     this.invitation = new InvitationSculpture(
@@ -69,8 +63,6 @@ export class ExperienceRoot {
       this.lights.group,
       this.energy.group,
       this.model.lift,
-      this.red.mesh,
-      this.white.mesh,
       this.ignite.group,
       this.anniversary.group,
       this.invitation.group,
@@ -196,12 +188,6 @@ export class ExperienceRoot {
     this.ambientLoop?.timeScale(params.animationSpeed);
   }
 
-  rebuildFabrics() {
-    const params = this.params;
-    this.red.rebuild(this.fabricOptions(-1, params.redFabricWidth, "#9d1834", "#f3d7a2"));
-    this.white.rebuild(this.fabricOptions(1, params.whiteFabricWidth, "#f7f2ea", "#e4c78a"));
-  }
-
   rebuildParticles() {
     this.particles.setCount(this.params.particleCount);
   }
@@ -218,8 +204,6 @@ export class ExperienceRoot {
     this.timeline.kill();
     this.ambientLoop?.kill();
     this.model.dispose();
-    this.red.dispose();
-    this.white.dispose();
     this.energy.dispose();
     this.particles.dispose();
     this.ignite.dispose();
@@ -241,25 +225,6 @@ export class ExperienceRoot {
     this.onRevealComplete?.();
   }
 
-  private createFabric(side: number, width: number, color: string, trim: string) {
-    return new FlowingFabric(this.fabricOptions(side, width, color, trim));
-  }
-
-  private fabricOptions(side: number, width: number, color: string, trim: string) {
-    const params = this.params;
-    return {
-      points: side < 0
-        ? redFabricPoints(params.fabricPathSpread, params.fabricPathLift)
-        : whiteFabricPoints(params.fabricPathSpread, params.fabricPathLift),
-      width,
-      lengthSegments: this.quality.fabricLength,
-      widthSegments: this.quality.fabricWidthSegments,
-      side,
-      color: new THREE.Color(color),
-      trim: new THREE.Color(trim),
-    };
-  }
-
   private applyMotion(time: number) {
     const motion = this.motion;
     const params = this.params;
@@ -267,17 +232,6 @@ export class ExperienceRoot {
     this.energy.apply(motion, time);
     this.particles.setTime(time);
     this.particles.setOpacity(motion.particleOpacity * (0.75 + motion.ambientGlow));
-    const flutter = params.waveAmplitude * (0.75 + motion.ambientGlow);
-    for (const fabric of [this.red, this.white]) {
-      fabric.uniforms.uTime.value = time;
-      fabric.uniforms.uAmplitude.value = flutter;
-      fabric.uniforms.uFrequency.value = params.waveFrequency;
-      fabric.uniforms.uSpeed.value = params.waveSpeed;
-      fabric.uniforms.uReveal.value = motion.fabricReveal;
-      fabric.uniforms.uOpen.value = motion.fabricOpen;
-      fabric.uniforms.uHighlight.value = time * 0.08;
-      fabric.uniforms.uOpacity.value = Math.min(1, motion.fabricReveal * 1.15);
-    }
     this.ignite.group.position.set(params.igniteX, params.igniteY + motion.igniteLift, params.igniteZ);
     this.anniversary.group.position.set(
       params.anniversaryX,

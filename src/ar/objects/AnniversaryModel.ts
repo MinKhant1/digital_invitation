@@ -10,6 +10,31 @@ function findClip(clips: THREE.AnimationClip[], names: string[]) {
   return null;
 }
 
+const CLOTH_NODES = new Set(["RIBBON_RedUnion", "RIBBON_WhiteUnion"]);
+
+function withoutClothTracks(clip: THREE.AnimationClip) {
+  const tracks = clip.tracks.filter((track) => !CLOTH_NODES.has(track.name.split(".")[0]));
+  if (tracks.length === clip.tracks.length) return clip;
+  return new THREE.AnimationClip(clip.name, clip.duration, tracks);
+}
+
+function removeCloth(model: THREE.Object3D) {
+  const cloth: THREE.Object3D[] = [];
+  model.traverse((obj) => {
+    if (CLOTH_NODES.has(obj.name)) cloth.push(obj);
+  });
+  for (const obj of cloth) {
+    obj.removeFromParent();
+    obj.traverse((child) => {
+      const mesh = child as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      mesh.geometry.dispose();
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach((material) => material.dispose());
+    });
+  }
+}
+
 export class AnniversaryModel {
   readonly lift = new THREE.Group();
   readonly pivot = new THREE.Group();
@@ -22,6 +47,7 @@ export class AnniversaryModel {
 
   constructor(gltf: GLTF, quality: QualityPreset) {
     const model = gltf.scene;
+    removeCloth(model);
     model.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
@@ -48,14 +74,16 @@ export class AnniversaryModel {
     this.lift.add(this.pivot);
 
     this.mixer = new THREE.AnimationMixer(model);
-    const revealClip =
+    const revealSource =
       findClip(gltf.animations, sceneConfig.revealClipNames) ??
       [...gltf.animations].sort((a, b) => b.duration - a.duration)[0] ??
       null;
-    const ambientClip =
+    const revealClip = revealSource ? withoutClothTracks(revealSource) : null;
+    const ambientSource =
       findClip(gltf.animations, sceneConfig.ambientClipNames) ??
-      gltf.animations.find((clip) => clip !== revealClip) ??
+      gltf.animations.find((clip) => clip !== revealSource) ??
       null;
+    const ambientClip = ambientSource ? withoutClothTracks(ambientSource) : null;
     this.clipNames = {
       reveal: revealClip?.name ?? null,
       ambient: ambientClip?.name ?? null,
