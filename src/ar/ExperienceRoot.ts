@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import type { Font } from "three/addons/loaders/FontLoader.js";
 import {
   CINEMATIC_DURATION,
   createMotion,
@@ -11,11 +10,8 @@ import { createAmbientLoop } from "./animations/ambientLoop";
 import { createMasterTimeline } from "./animations/createMasterTimeline";
 import type { LoadedAssets } from "./AssetLoader";
 import { AnniversaryModel } from "./objects/AnniversaryModel";
-import { AnniversaryText } from "./objects/AnniversaryText";
 import { DecorativeParticles } from "./objects/DecorativeParticles";
 import { GoldEnergy } from "./objects/GoldEnergy";
-import { IgniteText } from "./objects/IgniteText";
-import { InvitationSculpture } from "./objects/InvitationSculpture";
 import { AgendaPlate, IgniteHologram } from "./objects/StageDressing";
 import { applyGoldBrightness, createSceneLights, type SceneLights } from "./SceneLighting";
 
@@ -31,14 +27,9 @@ export class ExperienceRoot {
   onFrame: ((time: number) => void) | null = null;
   private readonly energy: GoldEnergy;
   private readonly particles: DecorativeParticles;
-  private readonly ignite: IgniteText;
-  private readonly anniversary: AnniversaryText;
-  private readonly invitation: InvitationSculpture;
   private readonly agenda: AgendaPlate;
   private readonly hologram: IgniteHologram;
   private readonly timeline;
-  private readonly quality: QualityPreset;
-  private readonly font: Font;
   private ambientLoop: ReturnType<typeof createAmbientLoop> | null = null;
   private mode: Playback = "ready";
   private shaderTime = 0;
@@ -46,33 +37,15 @@ export class ExperienceRoot {
   private held = false;
 
   constructor(assets: LoadedAssets, quality: QualityPreset, params: LiveParams) {
-    this.quality = quality;
     this.params = params;
-    this.font = assets.font;
     this.lights = createSceneLights();
     this.model = new AnniversaryModel(assets.gltf, quality);
     this.energy = new GoldEnergy();
     this.particles = new DecorativeParticles(params.particleCount);
-    this.ignite = new IgniteText(assets.font, params.textSize, params.textDepth, quality.curveSegments);
-    this.anniversary = new AnniversaryText(assets.font, params.textSize, params.textDepth, quality.curveSegments);
-    this.invitation = new InvitationSculpture(
-      assets.font,
-      assets,
-      params.textSize,
-      params.textDepth,
-      quality.curveSegments,
-    );
     this.agenda = new AgendaPlate(assets.agenda);
     this.hologram = new IgniteHologram(assets.ignite);
     this.model.content.add(this.agenda.mesh, this.hologram.group);
-    this.group.add(
-      this.lights.group,
-      this.energy.group,
-      this.model.lift,
-      this.anniversary.group,
-      this.invitation.group,
-      this.particles.points,
-    );
+    this.group.add(this.lights.group, this.energy.group, this.model.lift, this.particles.points);
     this.timeline = createMasterTimeline(this.motion, () => this.finish());
     this.applyTransforms();
     this.applyMotion(0);
@@ -198,10 +171,6 @@ export class ExperienceRoot {
   }
 
   rebuildTypography() {
-    const params = this.params;
-    this.ignite.rebuild(this.font, params.textSize, params.textDepth, this.quality.curveSegments);
-    this.anniversary.rebuild(this.font, params.textSize, params.textDepth, this.quality.curveSegments);
-    this.invitation.rebuild(this.font, params.textSize, params.textDepth, this.quality.curveSegments);
     this.applyMotion(this.shaderTime);
   }
 
@@ -211,9 +180,6 @@ export class ExperienceRoot {
     this.model.dispose();
     this.energy.dispose();
     this.particles.dispose();
-    this.ignite.dispose();
-    this.anniversary.dispose();
-    this.invitation.dispose();
     this.agenda.dispose();
     this.hologram.dispose();
     this.lights.group.traverse((obj) => {
@@ -234,29 +200,13 @@ export class ExperienceRoot {
 
   private applyMotion(time: number) {
     const motion = this.motion;
-    const params = this.params;
     this.model.lift.position.z = motion.modelLift + motion.ambientLift;
     this.energy.apply(motion, time);
     this.particles.setTime(time);
     this.particles.setOpacity(motion.particleOpacity * (0.75 + motion.ambientGlow));
-    this.ignite.group.position.set(params.igniteX, params.igniteY + motion.igniteLift, params.igniteZ);
-    this.anniversary.group.position.set(
-      params.anniversaryX,
-      params.anniversaryY + motion.anniversaryLift,
-      params.anniversaryZ,
-    );
-    this.invitation.group.position.set(
-      params.invitationX,
-      params.invitationY - (1 - motion.invitation) * 0.04,
-      params.invitationZ - (1 - motion.invitation) * 0.08,
-    );
-    const glow = params.redGlow * (motion.glow + motion.ambientGlow);
     const hologramOpacity = Math.max(motion.igniteOpacity, THREE.MathUtils.smoothstep(time, 0.2, 1.15));
-    this.agenda.setOpacity(THREE.MathUtils.smoothstep(time, 0.05, 0.75));
+    this.agenda.setOpacity(1);
     this.hologram.update(time, hologramOpacity);
-    this.ignite.apply(motion.igniteOpacity, motion.igniteSweep, glow, time);
-    this.anniversary.apply(motion.anniversaryOpacity, motion.anniversarySweep, params.goldBrightness, time);
-    this.invitation.apply(motion.invitation, time);
-    applyGoldBrightness(this.lights, params.goldBrightness, motion.lightSweep);
+    applyGoldBrightness(this.lights, this.params.goldBrightness, motion.lightSweep);
   }
 }

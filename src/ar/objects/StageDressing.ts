@@ -16,20 +16,21 @@ export class AgendaPlate {
   private readonly material: THREE.MeshBasicMaterial;
 
   constructor(texture: THREE.Texture) {
-    const width = 1.62;
+    const width = 1.7;
     const depth = width * AGENDA_ASPECT;
     this.material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
-      opacity: 0,
+      opacity: 1,
       toneMapped: true,
+      side: THREE.DoubleSide,
     });
     this.material.polygonOffset = true;
     this.material.polygonOffsetFactor = -2;
     this.material.polygonOffsetUnits = -2;
     this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), this.material);
     this.mesh.rotation.x = -Math.PI / 2;
-    this.mesh.position.set(STAGE_MARK.x, STAGE_MARK.y + 0.006, 0.2 + depth / 2);
+    this.mesh.position.set(STAGE_MARK.x, STAGE_MARK.y + 0.012, 0.12 + depth / 2);
     this.mesh.frustumCulled = true;
   }
 

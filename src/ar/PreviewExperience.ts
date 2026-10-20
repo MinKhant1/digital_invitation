@@ -41,9 +41,9 @@ export class PreviewExperience {
     this.container.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.01, 20);
-    this.camera.position.set(0, 0.42, 2.15);
+    this.camera.position.set(0, -1.25, 0.85);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0.12, 0.02);
+    this.controls.target.set(0, 0.02, 0.16);
     this.controls.enableDamping = true;
     this.controls.update();
 
