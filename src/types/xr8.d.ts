@@ -37,6 +37,9 @@ export interface XR8Api {
   GlTextureRenderer: {
     pipelineModule: () => XrPipelineModule;
   };
+  FullWindowCanvas?: {
+    pipelineModule: () => XrPipelineModule;
+  };
   XrConfig: {
     device: () => { MOBILE_AND_HEADSETS: unknown };
     camera: () => { BACK: unknown };

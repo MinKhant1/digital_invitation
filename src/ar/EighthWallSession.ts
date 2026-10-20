@@ -29,7 +29,22 @@ function claimCanvas(container: HTMLElement) {
     sharedCanvas.className = "xr-canvas";
   }
   container.appendChild(sharedCanvas);
+  coverCanvas(sharedCanvas);
   return sharedCanvas;
+}
+
+function viewportSize() {
+  const viewport = window.visualViewport;
+  return {
+    width: Math.max(1, Math.round(viewport?.width ?? window.innerWidth)),
+    height: Math.max(1, Math.round(viewport?.height ?? window.innerHeight)),
+  };
+}
+
+function coverCanvas(canvas: HTMLCanvasElement) {
+  const { width, height } = viewportSize();
+  canvas.width = width;
+  canvas.height = height;
 }
 
 function fullCardScale(record: ImageTargetRecord) {
@@ -130,10 +145,12 @@ export class EighthWallSession {
     const canvas = claimCanvas(this.container);
     this.canvas = canvas;
     XR8.XrController.configure({ imageTargetData: [record] });
+    if (XR8.FullWindowCanvas) XR8.addCameraPipelineModule(XR8.FullWindowCanvas.pipelineModule());
     XR8.addCameraPipelineModule(XR8.GlTextureRenderer.pipelineModule());
     XR8.addCameraPipelineModule(XR8.Threejs.pipelineModule());
     XR8.addCameraPipelineModule(XR8.XrController.pipelineModule());
     XR8.addCameraPipelineModule(this.pipeline());
+    this.bindViewport();
     XR8.run({
       canvas,
       allowedDevices: XR8.XrConfig.device().MOBILE_AND_HEADSETS,
@@ -206,13 +223,39 @@ export class EighthWallSession {
         XR8.removeCameraPipelineModule("anniversary-tracking");
       }
     }
+    this.unbindViewport();
     this.canvas?.remove();
+  }
+
+  private readonly onViewportChange = () => this.fitCanvas();
+
+  private bindViewport() {
+    window.addEventListener("resize", this.onViewportChange);
+    window.addEventListener("orientationchange", this.onViewportChange);
+    window.visualViewport?.addEventListener("resize", this.onViewportChange);
+  }
+
+  private unbindViewport() {
+    window.removeEventListener("resize", this.onViewportChange);
+    window.removeEventListener("orientationchange", this.onViewportChange);
+    window.visualViewport?.removeEventListener("resize", this.onViewportChange);
+  }
+
+  private fitCanvas() {
+    const canvas = this.renderer?.domElement ?? this.canvas;
+    if (!canvas || this.disposed) return;
+    const { width, height } = viewportSize();
+    if (canvas.width === width && canvas.height === height) return;
+    canvas.width = width;
+    canvas.height = height;
   }
 
   private pipeline() {
     return {
       name: "anniversary-tracking",
       onStart: () => this.onStart(),
+      onCanvasSizeChange: () => this.fitCanvas(),
+      onDeviceOrientationChange: () => this.fitCanvas(),
       onUpdate: ({ processCpuResult }: { processCpuResult?: { reality?: { trackingStatus?: string; trackingReason?: string } } }) => {
         const reality = processCpuResult?.reality;
         if (reality?.trackingStatus) this.slamStatus = reality.trackingStatus;
@@ -249,11 +292,14 @@ export class EighthWallSession {
     this.scene = scene;
     this.renderer = renderer;
     this.mounted = true;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.dprMax));
+    renderer.setPixelRatio(1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
+    renderer.domElement.classList.add("xr-canvas");
     renderer.domElement.style.pointerEvents = "none";
+    this.fitCanvas();
+    window.requestAnimationFrame(() => this.fitCanvas());
     this.onContextLost = (event: Event) => {
       event.preventDefault();
       if (!this.disposed) this.callbacks.onError("webgl-lost");

@@ -12,14 +12,36 @@
   z-index: 0;
 }
 
-.stage video {
-  z-index: 0 !important;
-  max-width: none !important;
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
-.stage canvas {
-  z-index: 1 !important;
+.stage video {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  object-fit: cover;
+  z-index: 0 !important;
+}
+
+.stage canvas,
+canvas.xr-canvas {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  width: 100dvw !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  z-index: 0 !important;
   display: block;
+  pointer-events: none;
 }
 
 .landing,
