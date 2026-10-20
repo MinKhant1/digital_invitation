@@ -131,15 +131,23 @@ export function createLiveParams(quality: QualityPreset): LiveParams {
 
 export const trackingConfig = {
   maxTrack: 1,
-  // MindAR's One Euro filter. A beta near 0.01 lags far behind the phone.
-  // 1000 is the library default and keeps the sculpture locked to the card.
-  filterMinCF: 0.001,
-  filterBeta: 1000,
+  // MindAR filters the 16 matrix numbers independently, which shears the pose.
+  // These values pass the raw measurement through. PoseStabilizer does the smoothing.
+  filterMinCF: 1,
+  filterBeta: 0,
   warmupTolerance: 6,
   missTolerance: 10,
   lossGraceMs: 480,
   stableHoldMs: 320,
   searchTimeoutMs: 28000,
+  // Rigid follow, in Hz. Beta is extra Hz per marker-width (or radian) that the scene has fallen behind.
+  // The rest frequency stays put during tracker noise. Beta only rises once the pose is actually late.
+  positionMinHz: 1.5,
+  positionBeta: 26,
+  rotationMinHz: 1.5,
+  rotationBeta: 16,
+  snapDistance: 0.45,
+  snapAngle: 0.6,
 };
 
 export const sceneConfig = {

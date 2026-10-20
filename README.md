@@ -61,7 +61,7 @@ Open the production URL on a phone, allow the camera, and frame the printed card
 
 ## Tracking notes
 
-MindAR's One Euro filter is configured with `filterMinCF: 0.001` and `filterBeta: 1000`. A beta near `0.01` makes the sculpture lag far behind the phone. `1000` is the library default and keeps the scene locked to the card.
+MindAR's built-in filter is passed through (`filterMinCF: 1`, `filterBeta: 0`). It smooths each matrix number on its own, which shears the pose and leaves the card shaking. `PoseStabilizer` follows position and rotation as one rigid pose instead.
 
 A short grace period holds the last good pose when the card is briefly lost. The cinematic timeline is not restarted. Reacquiring the card resumes it.
 

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { MindARAnchor, MindARThreeInstance } from "mind-ar/dist/mindar-image-three.prod.js";
 import { trackingConfig } from "../config/experience";
+import { PoseStabilizer } from "./PoseStabilizer";
 
 export interface TrackingCallbacks {
   onStable: () => void;
@@ -13,6 +14,7 @@ export class ImageTrackingManager {
   readonly mind: MindARThreeInstance;
   readonly anchor: MindARAnchor;
   private readonly lastMatrix = new THREE.Matrix4();
+  private readonly stabilizer = new PoseStabilizer();
   private hasPose = false;
   private revealed = false;
   private graceActive = false;
@@ -47,14 +49,16 @@ export class ImageTrackingManager {
   }
 
   beforeRender() {
+    const now = performance.now();
     const group = this.anchor.group;
-    group.matrixWorldNeedsUpdate = true;
     if (this.anchor.visible) {
-      this.lastMatrix.copy(group.matrix);
-      this.hasPose = true;
+      if (this.stabilizer.present(group, now)) {
+        this.stabilizer.hold(this.lastMatrix);
+        this.hasPose = true;
+      }
       return;
     }
-    if (this.graceActive && this.hasPose && performance.now() - this.lostAt < trackingConfig.lossGraceMs) {
+    if (this.graceActive && this.hasPose && now - this.lostAt < trackingConfig.lossGraceMs) {
       group.visible = true;
       group.matrix.copy(this.lastMatrix);
       group.matrixWorldNeedsUpdate = true;
@@ -93,9 +97,9 @@ export class ImageTrackingManager {
 
   private updated() {
     if (this.anchor.visible) {
-      this.lastMatrix.copy(this.anchor.group.matrix);
+      this.stabilizer.observe(this.anchor.group.matrix, performance.now());
+      this.stabilizer.hold(this.lastMatrix);
       this.hasPose = true;
-      this.anchor.group.matrixWorldNeedsUpdate = true;
       return;
     }
     if (!this.graceActive || !this.hasPose) return;
