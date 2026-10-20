@@ -27,7 +27,6 @@ export class GoldEnergy {
   private readonly rings: THREE.Mesh[] = [];
   private readonly arcs: THREE.Mesh[] = [];
   private readonly arcBase: number[] = [];
-  private readonly beams: THREE.Mesh[] = [];
   private readonly haloUniforms: { uOpacity: { value: number }; uTime: { value: number } };
   private readonly ringUniforms: { uOpacity: { value: number } }[] = [];
 
@@ -105,18 +104,9 @@ export class GoldEnergy {
       this.arcs.push(mesh);
       this.group.add(mesh);
     });
-
-    for (let i = 0; i < 5; i += 1) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.28, 0.012), additive("#ffe3a6"));
-      mesh.position.set((i - 2) * 0.055, -0.02, 0.08 + (i % 2) * 0.02);
-      mesh.scale.y = 0.001;
-      this.beams.push(mesh);
-      this.group.add(mesh);
-    }
   }
 
   apply(motion: MotionState, time: number) {
-    const beams = [motion.beamA, motion.beamB, motion.beamC, motion.beamD, motion.beamE];
     this.core.scale.setScalar(Math.max(0.001, motion.coreScale) * (1 + Math.sin(time * 2.2) * 0.06));
     (this.core.material as THREE.MeshBasicMaterial).opacity = Math.min(1, motion.coreScale) * 0.95;
 
@@ -139,14 +129,6 @@ export class GoldEnergy {
       const direction = index % 2 === 0 ? 1 : -1;
       arc.rotation.z = this.arcBase[index] + time * 0.18 * direction;
       arc.scale.setScalar(0.65 + motion.ringSpread * 0.45);
-    });
-
-    this.beams.forEach((beam, index) => {
-      const amount = beams[index];
-      beam.scale.y = Math.max(0.001, amount);
-      beam.position.y = -0.14 + amount * 0.14;
-      beam.position.z = 0.04 + amount * 0.12;
-      (beam.material as THREE.MeshBasicMaterial).opacity = motion.beamOpacity * Math.min(1, amount * 1.2);
     });
   }
 

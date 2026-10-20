@@ -16,7 +16,7 @@ export class AgendaPlate {
   private readonly material: THREE.MeshBasicMaterial;
 
   constructor(texture: THREE.Texture) {
-    const width = 1.7;
+    const width = 6.6;
     const depth = width * AGENDA_ASPECT;
     this.material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -56,7 +56,7 @@ export class IgniteHologram {
   constructor(texture: THREE.Texture) {
     const width = 2.72;
     const height = width / IGNITE_ASPECT;
-    this.restY = height * 0.5 + 0.72;
+    this.restY = 6.4;
 
     this.markMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -92,8 +92,8 @@ export class IgniteHologram {
     this.ring.rotation.x = -Math.PI / 2;
     this.ring.position.y = 0.02;
 
-    this.light = new THREE.PointLight(0xffc48a, 0, 1.35, 2);
-    this.light.position.set(0, 0.55, 0.15);
+    this.light = new THREE.PointLight(0xffc48a, 0, 6.5, 2);
+    this.light.position.set(0, 6.1, 0.2);
 
     this.group.add(this.mark, this.ring, this.light);
     this.group.position.copy(STAGE_MARK);
