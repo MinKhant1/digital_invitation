@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { CARD_HEIGHT, CARD_WIDTH } from "../config/assets";
 import {
   CINEMATIC_DURATION,
   createMotion,
@@ -262,10 +261,7 @@ export class ExperienceRoot {
     this.worldQuat.setFromRotationMatrix(this.basis);
     this.localQuat.multiply(this.worldQuat);
 
-    const halfW = CARD_WIDTH * 0.5;
-    const halfH = CARD_HEIGHT * 0.5;
-    const extent = Math.abs(this.localUp.x) * halfW + Math.abs(this.localUp.y) * halfH;
-    const rise = extent * vertical + this.motion.modelLift + this.motion.ambientLift;
+    const rise = this.motion.modelLift + this.motion.ambientLift;
     const params = this.params;
     const placed = 1 - vertical;
     this.model.pivot.position.set(
