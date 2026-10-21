@@ -35,6 +35,7 @@ export class AgendaPlate {
     this.material.polygonOffsetFactor = -2;
     this.material.polygonOffsetUnits = -2;
     this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), this.material);
+    this.mesh.name = "agenda-plate";
     this.mesh.rotation.x = -Math.PI / 2;
     this.mesh.position.set(STAGE_MARK.x, STAGE_MARK.y + 0.012, 0.12 + depth / 2);
     this.mesh.frustumCulled = true;
@@ -62,9 +63,9 @@ export class IgniteHologram {
   private readonly light: THREE.PointLight;
 
   constructor(texture: THREE.Texture) {
-    const width = 2.72;
+    const width = 11;
     const height = width / IGNITE_ASPECT;
-    this.restY = 6.4;
+    this.restY = 10.15;
     const columnHeight = this.restY - height * 0.08;
 
     this.markMaterial = new THREE.ShaderMaterial({
@@ -126,7 +127,7 @@ export class IgniteHologram {
       this.group.add(copy);
     }
 
-    this.light = new THREE.PointLight(0xffc46a, 0, 7.5, 2);
+    this.light = new THREE.PointLight(0xffc46a, 0, 11, 2);
     this.light.position.set(0, columnHeight * 0.45, 0.15);
 
     this.group.add(this.mark, this.projector, this.beams, this.light);

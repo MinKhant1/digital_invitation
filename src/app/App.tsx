@@ -3,6 +3,7 @@ import { ARExperience } from "../ar/ARExperience";
 import { AssetError, preloadAssets, type LoadedAssets } from "../ar/AssetLoader";
 import { canRecordVideo } from "../ar/capture";
 import type { TrackingPhase } from "../ar/trackingTypes";
+import { AgendaModal } from "../components/AgendaModal";
 import { CameraOverlay } from "../components/CameraOverlay";
 import { CapturePreview } from "../components/CapturePreview";
 import { ErrorScreen } from "../components/ErrorScreen";
@@ -42,6 +43,7 @@ function GuestExperience() {
   const [error, setError] = useState<ExperienceErrorCode | null>(null);
   const [capture, setCapture] = useState<{ blob: Blob; url: string } | null>(null);
   const [invitationOpen, setInvitationOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
   const recordable = canRecordVideo();
   const trackingDebug = isTrackingDebug();
 
@@ -73,6 +75,7 @@ function GuestExperience() {
         setPhase("error");
       },
       onSearchTimeout: () => setSearchMiss(true),
+      onAgenda: () => setAgendaOpen(true),
     });
     experienceRef.current = experience;
     let cancelled = false;
@@ -135,6 +138,7 @@ function GuestExperience() {
     setRevealed(false);
     setRecording(false);
     setInvitationOpen(false);
+    setAgendaOpen(false);
     releaseCapture();
   }
 
@@ -230,6 +234,7 @@ function GuestExperience() {
       )}
       {phase === "error" && error && <ErrorScreen code={error} onRetry={retry} onBack={backHome} />}
       {invitationOpen && <InvitationModal onClose={() => setInvitationOpen(false)} />}
+      {agendaOpen && <AgendaModal onClose={() => setAgendaOpen(false)} />}
       {capture && <CapturePreview blob={capture.blob} url={capture.url} onClose={releaseCapture} />}
     </div>
   );

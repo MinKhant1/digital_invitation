@@ -19,6 +19,7 @@ export interface TrackingSessionCallbacks {
   onRevealComplete: () => void;
   onError: (code: ExperienceErrorCode) => void;
   onSearchTimeout: () => void;
+  onAgenda: () => void;
 }
 
 let sharedCanvas: HTMLCanvasElement | null = null;
@@ -81,7 +82,11 @@ export class EighthWallSession {
   private marker: TrackingDebugMarker | null = null;
   private environment: THREE.Texture | null = null;
   private renderer: THREE.WebGLRenderer | null = null;
+  private camera: THREE.PerspectiveCamera | null = null;
   private scene: THREE.Scene | null = null;
+  private readonly raycaster = new THREE.Raycaster();
+  private readonly pointer = new THREE.Vector2();
+  private readonly pickStart = new THREE.Vector2();
   private canvas: HTMLCanvasElement | null = null;
   private engine: XR8Api | null = null;
   private phase: TrackingPhase = "INITIALIZING";
@@ -120,6 +125,8 @@ export class EighthWallSession {
     this.imageTargetPose.add(this.visualRoot);
     this.visualRoot.add(this.fit);
     this.visualRoot.visible = false;
+    this.container.addEventListener("pointerdown", this.onPointerDown);
+    this.container.addEventListener("pointerup", this.onPointerUp);
   }
 
   get canvasElement() {
@@ -202,6 +209,8 @@ export class EighthWallSession {
     if (this.disposed) return;
     this.disposed = true;
     this.clearSearch();
+    this.container.removeEventListener("pointerdown", this.onPointerDown);
+    this.container.removeEventListener("pointerup", this.onPointerUp);
     this.root?.dispose();
     this.marker?.dispose();
     if (this.scene) this.scene.environment = null;
@@ -288,9 +297,10 @@ export class EighthWallSession {
 
   private onStart() {
     if (this.disposed || this.mounted || !this.engine) return;
-    const { scene, renderer } = this.engine.Threejs.xrScene();
+    const { scene, renderer, camera } = this.engine.Threejs.xrScene();
     this.scene = scene;
     this.renderer = renderer;
+    this.camera = camera;
     this.mounted = true;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.dprMax));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -321,6 +331,27 @@ export class EighthWallSession {
     this.clock.start();
     if (this.phase === "INITIALIZING") this.beginSearch();
   }
+
+  private onPointerDown = (event: PointerEvent) => {
+    this.pickStart.set(event.clientX, event.clientY);
+  };
+
+  private onPointerUp = (event: PointerEvent) => {
+    const dx = event.clientX - this.pickStart.x;
+    const dy = event.clientY - this.pickStart.y;
+    if (dx * dx + dy * dy > 144) return;
+    const camera = this.camera;
+    const root = this.root;
+    if (!camera || !root) return;
+    const bounds = this.container.getBoundingClientRect();
+    if (bounds.width === 0 || bounds.height === 0) return;
+    this.pointer.set(
+      ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+      -((event.clientY - bounds.top) / bounds.height) * 2 + 1,
+    );
+    this.raycaster.setFromCamera(this.pointer, camera);
+    if (root.hitsAgenda(this.raycaster)) this.callbacks.onAgenda();
+  };
 
   private beginSearch() {
     if (this.disposed || this.anchored) return;

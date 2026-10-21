@@ -8,16 +8,14 @@ export class DecorativeParticles {
     uSize: { value: number };
     uHeight: { value: number };
     uOpacity: { value: number };
-    uColor: { value: THREE.Color };
   };
 
   constructor(count: number) {
     this.uniforms = {
       uTime: { value: 0 },
-      uSize: { value: 10 },
-      uHeight: { value: 0.48 },
+      uSize: { value: 28 },
+      uHeight: { value: 0.86 },
       uOpacity: { value: 0 },
-      uColor: { value: new THREE.Color("#f3d7a1") },
     };
     const material = new THREE.ShaderMaterial({
       uniforms: this.uniforms,
@@ -29,6 +27,7 @@ export class DecorativeParticles {
       toneMapped: false,
     });
     this.points = new THREE.Points(this.createGeometry(count), material);
+    this.points.position.set(0, 0.04, 0.02);
     this.points.frustumCulled = false;
     this.points.renderOrder = 6;
   }
@@ -36,7 +35,7 @@ export class DecorativeParticles {
   private createGeometry(count: number) {
     const seeds = new Float32Array(count * 3);
     for (let i = 0; i < count; i += 1) {
-      seeds[i * 3] = (Math.random() - 0.5) * 0.78;
+      seeds[i * 3] = Math.random();
       seeds[i * 3 + 1] = Math.random();
       seeds[i * 3 + 2] = Math.random();
     }

@@ -170,6 +170,17 @@ export class ExperienceRoot {
     this.particles.setCount(this.params.particleCount);
   }
 
+  hitsAgenda(raycaster: THREE.Raycaster) {
+    const mesh = this.agenda.mesh;
+    let node: THREE.Object3D | null = mesh;
+    while (node) {
+      if (!node.visible) return false;
+      node = node.parent;
+    }
+    mesh.updateWorldMatrix(true, false);
+    return raycaster.intersectObject(mesh, false).length > 0;
+  }
+
   rebuildTypography() {
     this.applyMotion(this.shaderTime);
   }
@@ -203,7 +214,8 @@ export class ExperienceRoot {
     this.model.lift.position.z = motion.modelLift + motion.ambientLift;
     this.energy.apply(motion, time);
     this.particles.setTime(time);
-    this.particles.setOpacity(motion.particleOpacity * (0.75 + motion.ambientGlow));
+    const sparkle = Math.max(motion.particleOpacity, THREE.MathUtils.smoothstep(time, 0.2, 1.1));
+    this.particles.setOpacity(sparkle);
     const hologramOpacity = Math.max(motion.igniteOpacity, THREE.MathUtils.smoothstep(time, 0.2, 1.15));
     this.agenda.setOpacity(1);
     this.hologram.update(time, hologramOpacity);

@@ -20,6 +20,9 @@ export class PreviewExperience {
   private running = false;
   private scrubbing = false;
   private onContextLost: ((event: Event) => void) | null = null;
+  private readonly raycaster = new THREE.Raycaster();
+  private readonly pointer = new THREE.Vector2();
+  private readonly pickStart = new THREE.Vector2();
 
   constructor(
     private readonly container: HTMLElement,
@@ -27,6 +30,7 @@ export class PreviewExperience {
     quality: QualityPreset,
     params: LiveParams,
     private readonly onError: (message: string) => void,
+    private readonly onAgenda: () => void,
   ) {
     this.renderer = new THREE.WebGLRenderer({
       antialias: quality.antialias,
@@ -41,9 +45,9 @@ export class PreviewExperience {
     this.container.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.01, 20);
-    this.camera.position.set(0, -2.15, 1.15);
+    this.camera.position.set(0, -3.6, 2.05);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, -0.15, 0.28);
+    this.controls.target.set(0, -0.05, 0.62);
     this.controls.enableDamping = true;
     this.controls.update();
 
@@ -66,6 +70,8 @@ export class PreviewExperience {
       this.onError("The WebGL context was lost. Reload the preview.");
     };
     this.renderer.domElement.addEventListener("webglcontextlost", this.onContextLost);
+    this.renderer.domElement.addEventListener("pointerdown", this.onPointerDown);
+    this.renderer.domElement.addEventListener("pointerup", this.onPointerUp);
     window.addEventListener("resize", this.resize);
   }
 
@@ -85,6 +91,8 @@ export class PreviewExperience {
     if (this.onContextLost) {
       this.renderer.domElement.removeEventListener("webglcontextlost", this.onContextLost);
     }
+    this.renderer.domElement.removeEventListener("pointerdown", this.onPointerDown);
+    this.renderer.domElement.removeEventListener("pointerup", this.onPointerUp);
     this.gui.destroy();
     this.controls.dispose();
     this.root.dispose();
@@ -95,6 +103,24 @@ export class PreviewExperience {
     this.renderer.forceContextLoss();
     this.container.replaceChildren();
   }
+
+  private onPointerDown = (event: PointerEvent) => {
+    this.pickStart.set(event.clientX, event.clientY);
+  };
+
+  private onPointerUp = (event: PointerEvent) => {
+    const dx = event.clientX - this.pickStart.x;
+    const dy = event.clientY - this.pickStart.y;
+    if (dx * dx + dy * dy > 64) return;
+    const bounds = this.renderer.domElement.getBoundingClientRect();
+    if (bounds.width === 0 || bounds.height === 0) return;
+    this.pointer.set(
+      ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+      -((event.clientY - bounds.top) / bounds.height) * 2 + 1,
+    );
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    if (this.root.hitsAgenda(this.raycaster)) this.onAgenda();
+  };
 
   private frame() {
     if (!this.running) return;
@@ -171,7 +197,7 @@ export class PreviewExperience {
     const look = gui.addFolder("Light");
     look.add(params, "goldBrightness", 0.2, 2, 0.01);
     look.add(params, "redGlow", 0, 2, 0.01);
-    look.add(params, "particleCount", 8, 240, 1).onFinishChange(() => root.rebuildParticles());
+    look.add(params, "particleCount", 8, 400, 1).onFinishChange(() => root.rebuildParticles());
     look.add(params, "animationSpeed", 0.1, 2, 0.01).onChange(() => root.applyTransforms());
     if (window.innerWidth < 960) gui.close();
     return gui;

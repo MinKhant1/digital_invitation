@@ -11,6 +11,7 @@ export interface ARCallbacks {
   onRevealComplete: () => void;
   onError: (code: ExperienceErrorCode) => void;
   onSearchTimeout: () => void;
+  onAgenda: () => void;
 }
 
 export class ARExperience {
@@ -51,6 +52,9 @@ export class ARExperience {
       },
       onSearchTimeout: () => {
         if (!this.disposed) this.callbacks.onSearchTimeout();
+      },
+      onAgenda: () => {
+        if (!this.disposed) this.callbacks.onAgenda();
       },
     });
     this.session = session;

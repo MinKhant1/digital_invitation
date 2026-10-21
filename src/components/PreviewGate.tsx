@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { preloadAssets, AssetError } from "../ar/AssetLoader";
 import { PreviewExperience } from "../ar/PreviewExperience";
+import { AgendaModal } from "./AgendaModal";
 import { createLiveParams, qualityPresets, resolveQuality } from "../config/experience";
 import { ERROR_COPY, type ExperienceErrorCode } from "../lib/errors";
 
@@ -9,6 +10,7 @@ export function PreviewGate() {
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<ExperienceErrorCode | null>(null);
+  const [agendaOpen, setAgendaOpen] = useState(false);
 
   useEffect(() => {
     const host = stageRef.current;
@@ -19,9 +21,16 @@ export function PreviewGate() {
       .then((assets) => {
         if (cancelled) return;
         const quality = qualityPresets[resolveQuality()];
-        experience = new PreviewExperience(host, assets, quality, createLiveParams(quality), () => {
-          setError("webgl-lost");
-        });
+        experience = new PreviewExperience(
+          host,
+          assets,
+          quality,
+          createLiveParams(quality),
+          () => {
+            setError("webgl-lost");
+          },
+          () => setAgendaOpen(true),
+        );
         experience.start();
         setReady(true);
       })
@@ -56,6 +65,7 @@ export function PreviewGate() {
         </section>
       )}
       <p className="preview-badge">Desktop preview</p>
+      {agendaOpen && <AgendaModal onClose={() => setAgendaOpen(false)} />}
     </div>
   );
 }
