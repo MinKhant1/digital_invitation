@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { CARD_HEIGHT, CARD_WIDTH } from "../config/assets";
 import {
   CINEMATIC_DURATION,
   createMotion,
@@ -35,6 +36,19 @@ export class ExperienceRoot {
   private shaderTime = 0;
   private completed = false;
   private held = false;
+  /** World up. Preview treats the card plane as the ground, so up is +Z. AR uses gravity, +Y. */
+  private readonly worldUp = new THREE.Vector3(0, 0, 1);
+  private readonly stageAnchor = new THREE.Group();
+  private readonly parentQuat = new THREE.Quaternion();
+  private readonly localQuat = new THREE.Quaternion();
+  private readonly cardY = new THREE.Vector3();
+  private readonly cardZ = new THREE.Vector3();
+  private readonly up = new THREE.Vector3();
+  private readonly forward = new THREE.Vector3();
+  private readonly right = new THREE.Vector3();
+  private readonly localUp = new THREE.Vector3();
+  private readonly basis = new THREE.Matrix4();
+  private readonly worldQuat = new THREE.Quaternion();
 
   constructor(assets: LoadedAssets, quality: QualityPreset, params: LiveParams) {
     this.params = params;
@@ -45,7 +59,10 @@ export class ExperienceRoot {
     this.agenda = new AgendaPlate(assets.agenda);
     this.hologram = new IgniteHologram(assets.ignite);
     this.model.content.add(this.agenda.mesh, this.hologram.group);
-    this.group.add(this.lights.group, this.energy.group, this.model.lift, this.particles.points);
+    this.particles.points.rotation.x = Math.PI / 2;
+    this.stageAnchor.add(this.particles.points);
+    this.model.lift.add(this.stageAnchor);
+    this.group.add(this.lights.group, this.energy.group, this.model.lift);
     this.timeline = createMasterTimeline(this.motion, () => this.finish());
     this.applyTransforms();
     this.applyMotion(0);
@@ -153,7 +170,14 @@ export class ExperienceRoot {
       }
     }
     this.applyMotion(this.shaderTime);
+    this.alignUpright();
     this.onFrame?.(this.time);
+  }
+
+  /** Keep the stage level with the world. Pass gravity up from the AR session. */
+  setWorldUp(up: THREE.Vector3) {
+    this.worldUp.copy(up);
+    this.alignUpright();
   }
 
   applyTransforms() {
@@ -161,8 +185,8 @@ export class ExperienceRoot {
     this.group.scale.setScalar(params.sceneScale);
     this.model.setHeight(params.modelHeight, params.modelScale);
     this.model.pivot.position.set(params.modelPositionX, params.modelPositionY, params.modelPositionZ);
-    this.model.pivot.rotation.set(params.modelRotationX, params.modelRotationY, params.modelRotationZ);
     this.timeline.timeScale(params.animationSpeed);
+    this.alignUpright();
     this.ambientLoop?.timeScale(params.animationSpeed);
   }
 
@@ -209,9 +233,56 @@ export class ExperienceRoot {
     this.onRevealComplete?.();
   }
 
+  private alignUpright() {
+    const lift = this.model.lift;
+    lift.updateWorldMatrix(true, false);
+    lift.getWorldQuaternion(this.parentQuat);
+    this.up.copy(this.worldUp).normalize();
+    this.cardY.set(0, 1, 0).applyQuaternion(this.parentQuat);
+    this.cardZ.set(0, 0, 1).applyQuaternion(this.parentQuat);
+
+    const flatness = Math.abs(this.cardZ.dot(this.up));
+    const vertical = THREE.MathUtils.smoothstep(1 - flatness, 0.25, 0.82);
+
+    this.forward.copy(this.cardY).negate().lerp(this.cardZ, vertical);
+    this.forward.addScaledVector(this.up, -this.forward.dot(this.up));
+    if (this.forward.lengthSq() < 1e-6) {
+      this.forward.set(1, 0, 0).applyQuaternion(this.parentQuat);
+      this.forward.addScaledVector(this.up, -this.forward.dot(this.up));
+    }
+    this.forward.normalize();
+    this.right.crossVectors(this.up, this.forward);
+    if (this.right.lengthSq() < 1e-6) this.right.set(1, 0, 0).applyQuaternion(this.parentQuat);
+    this.right.normalize();
+    this.forward.crossVectors(this.right, this.up).normalize();
+    this.basis.makeBasis(this.right, this.up, this.forward);
+
+    this.localQuat.copy(this.parentQuat).invert();
+    this.localUp.copy(this.up).applyQuaternion(this.localQuat);
+    this.worldQuat.setFromRotationMatrix(this.basis);
+    this.localQuat.multiply(this.worldQuat);
+
+    const halfW = CARD_WIDTH * 0.5;
+    const halfH = CARD_HEIGHT * 0.5;
+    const extent = Math.abs(this.localUp.x) * halfW + Math.abs(this.localUp.y) * halfH;
+    const rise = extent * vertical + this.motion.modelLift + this.motion.ambientLift;
+    const params = this.params;
+    const placed = 1 - vertical;
+    this.model.pivot.position.set(
+      params.modelPositionX * placed + this.localUp.x * rise,
+      params.modelPositionY * placed + this.localUp.y * rise,
+      params.modelPositionZ * placed + this.localUp.z * rise,
+    );
+    this.model.pivot.quaternion.copy(this.localQuat);
+    this.forward.set(0, 0, 1).applyQuaternion(this.localQuat);
+    this.model.pivot.position.addScaledVector(this.forward, this.model.scaledDepth * 0.5 * vertical);
+    this.stageAnchor.position.copy(this.model.pivot.position);
+    this.stageAnchor.quaternion.copy(this.model.pivot.quaternion);
+    this.model.lift.position.set(0, 0, 0);
+  }
+
   private applyMotion(time: number) {
     const motion = this.motion;
-    this.model.lift.position.z = motion.modelLift + motion.ambientLift;
     this.energy.apply(motion, time);
     this.particles.setTime(time);
     const sparkle = Math.max(motion.particleOpacity, THREE.MathUtils.smoothstep(time, 0.2, 1.1));

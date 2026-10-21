@@ -104,6 +104,10 @@ export class AnniversaryModel {
     }
   }
 
+  get scaledDepth() {
+    return this.unscaledDepth * Math.abs(this.pivot.scale.x);
+  }
+
   setHeight(height: number, scaleMultiplier: number) {
     const fitted = Math.min(0.96 / this.unscaledWidth, 0.52 / this.unscaledDepth);
     const scale = fitted * scaleMultiplier * (height / 0.42);

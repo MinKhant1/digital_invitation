@@ -322,6 +322,7 @@ export class EighthWallSession {
       this.visualRoot.add(this.marker.group);
     } else {
       const root = new ExperienceRoot(this.assets, this.quality, this.params);
+      root.setWorldUp(new THREE.Vector3(0, 1, 0));
       root.group.visible = false;
       root.onRevealComplete = () => this.callbacks.onRevealComplete();
       this.root = root;
